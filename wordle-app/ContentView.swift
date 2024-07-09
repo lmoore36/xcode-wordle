@@ -5,7 +5,7 @@ struct ContentView: View {
     @State private var secretWord: String = "julia"
     @State private var turnNumber: Int = 1
     @State private var message: String = ""
-    @State private var result: String = ""
+    @State private var results: [String] = []
     @State private var isGameOver: Bool = false
 
     var body: some View {
@@ -29,11 +29,15 @@ struct ContentView: View {
                 .padding()
                 .disabled(isGameOver)
             }
-               
-            Text(result)
-                .font(.largeTitle)
-                .padding()
-               
+            
+            VStack {
+                ForEach(results, id: \.self) { result in
+                    Text(result)
+                        .font(.largeTitle)
+                }
+            }
+            .padding()
+        
             Text(message)
                 .foregroundColor(.red)
                 .padding()
@@ -50,8 +54,9 @@ struct ContentView: View {
        
     func processGuess() {
         message = ""
-        result = emojified(guessWord, secretWord)
-        if guessWord == secretWord {
+        let processedResult = emojified(guessWord.lowercased(), secretWord.lowercased())
+            results.append(processedResult)
+        if guessWord.lowercased() == secretWord.lowercased() {
             message = "You won in \(turnNumber)/6 turns!"
             isGameOver = true
         } else {
@@ -87,7 +92,7 @@ struct ContentView: View {
     func restartGame() {
         turnNumber = 1
         message = ""
-        result = ""
+        results = []
         isGameOver = false
         secretWord = "julia" // You can randomize or change the secret word as needed
     }
