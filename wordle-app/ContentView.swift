@@ -2,12 +2,13 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var guessWord: String = ""
-    @State private var secretWord: String = "julia"
+    @State private var secretWord: String = ""
     @State private var turnNumber: Int = 1
     @State private var message: String = ""
     @State private var results: [String] = []
     @State private var isGameOver: Bool = false
-
+    @State private var wordList: [String] = []
+    
     var body: some View {
         VStack {
             Text("Wordle")
@@ -20,16 +21,15 @@ struct ContentView: View {
             if !isGameOver {
                 TextField("Enter a \(secretWord.count)-letter word", text: $guessWord, onCommit: {
                     if guessWord.count == secretWord.count {
-                           processGuess()
+                        processGuess()
                     } else {
                         message = "That wasn't \(secretWord.count) chars! Try again."
                     }
                 })
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding()
-                .disabled(isGameOver)
             }
-            
+               
             VStack {
                 ForEach(results, id: \.self) { result in
                     Text(result)
@@ -37,7 +37,7 @@ struct ContentView: View {
                 }
             }
             .padding()
-        
+               
             Text(message)
                 .foregroundColor(.red)
                 .padding()
@@ -50,12 +50,13 @@ struct ContentView: View {
             }
         }
         .padding()
+        .onAppear(perform: loadWords)
     }
        
     func processGuess() {
         message = ""
         let processedResult = emojified(guessWord.lowercased(), secretWord.lowercased())
-            results.append(processedResult)
+        results.append(processedResult)
         if guessWord.lowercased() == secretWord.lowercased() {
             message = "You won in \(turnNumber)/6 turns!"
             isGameOver = true
@@ -94,7 +95,25 @@ struct ContentView: View {
         message = ""
         results = []
         isGameOver = false
-        secretWord = "julia" // You can randomize or change the secret word as needed
+        if !wordList.isEmpty {
+            secretWord = wordList.randomElement() ?? "apple"
+        }
+    }
+    
+    func loadWords() {
+        if let filePath = Bundle.main.path(forResource: "valid-words", ofType: "txt") {
+            do {
+                let contents = try String(contentsOfFile: filePath)
+                wordList = contents.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { $0.count == 5 }
+                if let randomWord = wordList.randomElement() {
+                    secretWord = randomWord
+                }
+            } catch {
+                print("Error loading words from file: \(error)")
+            }
+        } else {
+            print("File not found")
+        }
     }
 }
 
