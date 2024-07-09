@@ -1,1 +1,1 @@
-# xcode-wordle
+# Swift Wordle App
